@@ -1,0 +1,16 @@
+---
+# parameters for glance image test
+IMAGE_SIZE_MB: 2000
+
+# parameters for vm2vm test
+CMP_HOSTS: []
+image_name: "Ubuntu-18.04"
+flavor_name: 'spt-test'
+flavor_ram: 1536
+flavor_vcpus: 1
+flavor_disk: 5
+nova_timeout: 90
+external_network: 'public'
+iperf_prep_string: "sudo /bin/bash -c 'echo \"91.189.88.161        archive.ubuntu.com\" >> /etc/hosts'"
+# whether Internet is present at OpenStack VMs and iperf can be installed with apt
+internet_at_vms: 'true'
