@@ -128,9 +128,12 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
     except Exception as e:
         print(e)
         print("Something went wrong")
-        # TODO (izadorozhna) if vms in case vms were not created
-        for vm in vms:
-            openstack_clients.compute.servers.delete(vm)
-        for fip in fips:
-            openstack_clients.compute.floating_ips.delete(fip)
+        if 'vms' in locals():
+            for vm in vms:
+                openstack_clients.compute.servers.delete(vm)
+            if 'fips' in locals():
+                for fip in fips:
+                    openstack_clients.compute.floating_ips.delete(fip)
+        else:
+            print("Skipping cleaning, VMs were not created")
         pytest.fail("Something went wrong")

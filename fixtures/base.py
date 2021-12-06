@@ -32,7 +32,7 @@ def os_resources(openstack_clients):
     os_actions = os_client.OSCliActions(openstack_clients)
     os_resource = {}
     config = utils.get_configuration()
-    image_name = config.get('image_name', 'Ubuntu')
+    image_name = config.get('image_name', 'Ubuntu-18.04')
     flavor_name = config.get('flavor_name', 'spt-test')
     flavor_ram = config.get('flavor_ram', 1536)
     flavor_vcpus = config.get('flavor_vcpus', 1)
