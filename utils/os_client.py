@@ -11,6 +11,7 @@ import random
 import time
 import utils
 
+
 class OfficialClientManager(object):
     """Manager that provides access to the official python clients for
     calling various OpenStack APIs.
@@ -63,9 +64,10 @@ class OfficialClientManager(object):
             msg = ("Missing required credentials for identity client. "
                    "username: {username}, password: {password}, "
                    "tenant_name: {tenant_name}").format(
-                       username=username,
-                       password=password,
-                       tenant_name=tenant_name, )
+                username=username,
+                password=password,
+                tenant_name=tenant_name
+            )
             raise msg
 
         if cert and "https" not in auth_url:
@@ -80,7 +82,8 @@ class OfficialClientManager(object):
                 auth_url=auth_url,
                 tenant_name=tenant_name)
         else:
-            auth_url = auth_url if ("v3" in auth_url) else "{}{}".format(auth_url, "/v3")
+            auth_url = auth_url if ("v3" in auth_url) else "{}{}".format(
+                auth_url, "/v3")
             auth = keystone_identity.v3.Password(
                 auth_url=auth_url,
                 user_domain_name=domain,
@@ -131,7 +134,8 @@ class OfficialClientManager(object):
             auth_url=auth_url, cert=cert, domain=domain)
         service_type = 'network'
         return neutron_client.Client(
-            service_type=service_type, session=session, interface=cls.INTERFACE, **kwargs)
+            service_type=service_type, session=session,
+            interface=cls.INTERFACE, **kwargs)
 
     @classmethod
     def get_volume_client(cls, username=None, password=None,
@@ -221,7 +225,7 @@ class OSCliActions(object):
             net for net in self.os_clients.network.list_networks()["networks"]
             if net["admin_state_up"] and not net["router:external"] and
             len(net["subnets"])
-        ]
+            ]
         if networks:
             net = networks[0]
         else:
@@ -254,14 +258,16 @@ class OSCliActions(object):
         ext_net = config.get('external_network') or ''
         if not ext_net:
             networks = [
-                net for net in self.os_clients.network.list_networks()["networks"]
+                net for net in
+                self.os_clients.network.list_networks()["networks"]
                 if net["admin_state_up"] and net["router:external"] and
                 len(net["subnets"])
-            ]
+                ]
         else:
-            networks = [net for net in self.os_clients.network.list_networks()["networks"]
-            if net["name"] == ext_net]
- 
+            networks = [net for net in
+                        self.os_clients.network.list_networks()["networks"]
+                        if net["name"] == ext_net]
+
         if networks:
             ext_net = networks[0]
         else:
@@ -284,7 +290,7 @@ class OSCliActions(object):
                 {
                     # iperf
                     'ip_protocol': 'tcp',
-                    'from_port':5001,
+                    'from_port': 5001,
                     'to_port': 5001,
                     'cidr': '0.0.0.0/0',
                 },
@@ -305,8 +311,8 @@ class OSCliActions(object):
                 secgroup.id, **ruleset)
         return secgroup
 
-
-    def wait(predicate, interval=5, timeout=60, timeout_msg="Waiting timed out"):
+    def wait(predicate, interval=5, timeout=60,
+             timeout_msg="Waiting timed out"):
         start_time = time.time()
         if not timeout:
             return predicate()
@@ -337,7 +343,7 @@ class OSCliActions(object):
             image, flavor, nics=[{"net-id": net["id"]}],
             availability_zone=availability_zone, key_name=keypair, **kwargs)
         # TODO
-        #if wait_timeout:
+        # if wait_timeout:
         #    self.wait(
         #        lambda: os_conn.compute.servers.get(server).status == "ACTIVE",
         #        timeout=wait_timeout,
@@ -356,8 +362,8 @@ class OSCliActions(object):
         }
         net = self.os_clients.network.create_network(net_body)['network']
         return net
-        #yield net
-        #self.os_clients.network.delete_network(net['id'])
+        # yield net
+        # self.os_clients.network.delete_network(net['id'])
 
     def create_subnet(self, net, tenant_id, cidr=None):
         subnet_name = "spt-test-subnet-{}".format(random.randrange(100, 999))
@@ -372,8 +378,8 @@ class OSCliActions(object):
         }
         subnet = self.os_clients.network.create_subnet(subnet_body)['subnet']
         return subnet
-        #yield subnet
-        #self.os_clients.network.delete_subnet(subnet['id'])
+        # yield subnet
+        # self.os_clients.network.delete_subnet(subnet['id'])
 
     def create_router(self, ext_net, tenant_id):
         name = 'spt-test-router-{}'.format(random.randrange(100, 999))
@@ -388,28 +394,28 @@ class OSCliActions(object):
         }
         router = self.os_clients.network.create_router(router_body)['router']
         return router
-        #yield router
-        #self.os_clients.network.delete_router(router['id'])
+        # yield router
+        # self.os_clients.network.delete_router(router['id'])
 
     def create_network_resources(self):
         tenant_id = self.get_admin_tenant().id
         ext_net = self.get_external_network()
         net = self.create_network(tenant_id)
         subnet = self.create_subnet(net, tenant_id)
-        #router = self.create_router(ext_net, tenant_id)
-        #self.os_clients.network.add_interface_router(
+        # router = self.create_router(ext_net, tenant_id)
+        # self.os_clients.network.add_interface_router(
         #    router['id'], {'subnet_id': subnet['id']})
 
         private_net_id = net['id']
         # floating_ip_pool = ext_net['id']
 
         return net
-        #yield private_net_id, floating_ip_pool
-        #yield private_net_id
+        # yield private_net_id, floating_ip_pool
+        # yield private_net_id
         #
-        #self.os_clients.network.remove_interface_router(
+        # self.os_clients.network.remove_interface_router(
         #     router['id'], {'subnet_id': subnet['id']})
-        #self.os_clients.network.remove_gateway_router(router['id'])
+        # self.os_clients.network.remove_gateway_router(router['id'])
 
     def list_nova_computes(self):
         nova_services = self.os_clients.compute.hosts.list()

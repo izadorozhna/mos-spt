@@ -85,4 +85,3 @@ def os_resources(openstack_clients):
     openstack_clients.compute.keypairs.delete(os_resource['keypair'].name)
     if flavor_is_created:
         openstack_clients.compute.flavors.delete(os_resource['flavor_id'])
-
