@@ -27,7 +27,7 @@ class SSHTransport(object):
         self.look_for_keys = look_for_keys
         self.buf_size = 1024
         # TODO (izadorozhna) change timeout back to 10.0
-        self.channel_timeout = 120.0
+        self.channel_timeout = 600.0
 
     def _get_ssh_connection(self):
         ssh = paramiko.SSHClient()
@@ -135,22 +135,23 @@ class prepare_iperf(object):
     def __init__(self, fip, user='ubuntu', password='password', private_key=None):
         transport = SSHTransport(fip, user, password, private_key)
         config = utils.get_configuration()
-        preparation_cmd = config.get('iperf_prep_string') or ['']
-        transport.exec_command(preparation_cmd)
 
         # Install iperf using apt or downloaded deb package
         internet_at_vms = utils.get_configuration().get("internet_at_vms")
         if internet_at_vms.lower() == 'false':
             logger.debug("Using downloaded iperf package")
-            transport.put_file("/var/lib/iperf_2.0.5+dfsg1-2_amd64.deb",
-                               "/home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb")
+            path_to_iperf_deb = config.get('iperf_deb_package_path') or \
+                    "/artifacts/mos-spt/iperf_2.0.5+dfsg1-2_amd64.deb"
+            transport.put_file(path_to_iperf_deb,
+                    "/home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb")
             transport.exec_command(
                 'sudo dpkg -i /home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb')
         else:
             logger.debug("Installing iperf using apt")
+            preparation_cmd = config.get('iperf_prep_string') or ['']
+            transport.exec_command(preparation_cmd)
             transport.exec_command(
                 'sudo apt-get update; sudo apt-get install -y iperf')
-
         # Log whether iperf is installed with version
         check = transport.exec_command('dpkg -l | grep iperf')
         logger.debug(check)

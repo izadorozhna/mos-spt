@@ -233,12 +233,17 @@ class OSCliActions(object):
         return net
 
     def create_fake_external_network(self):
+        print('\nCould not find any external network, creating a fake one...')
         net_name = "spt-ext-net-{}".format(random.randrange(100, 999))
         net_body = {"network": {"name": net_name,
                                 "router:external": True,
                                 "provider:network_type": "local"}}
-
-        ext_net = self.os_clients.network.create_network(net_body)['network']
+        try:
+            ext_net = self.os_clients.network.create_network(net_body)['network']
+        except Exception as e:
+            # in case 'local' net type is absent, create with default type
+            net_body["network"].pop('provider:network_type', None)
+            ext_net = self.os_clients.network.create_network(net_body)['network']
         subnet_name = "spt-ext-subnet-{}".format(random.randrange(100, 999))
         subnet_body = {
             "subnet": {
