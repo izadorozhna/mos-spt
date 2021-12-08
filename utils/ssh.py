@@ -4,8 +4,6 @@ import select
 import utils
 import paramiko
 import time
-import socket
-
 
 logger = logging.getLogger(__name__)
 
@@ -80,8 +78,8 @@ class SSHTransport(object):
         exit_status = channel.recv_exit_status()
         logger.debug("Command {0} executed with status: {1}"
                      .format(cmd, exit_status))
-        return (
-            exit_status, b" ".join(out_data).strip(), b" ".join(err_data).strip())
+        return (exit_status, b" ".join(out_data).strip(),
+                b" ".join(err_data).strip())
 
     def exec_command(self, cmd):
         exit_status, stdout, stderr = self.exec_sync(cmd)
@@ -149,9 +147,10 @@ class SSHTransport(object):
             except Exception as e:
                 ssh.close()
                 if self._is_timed_out(_start_time, timeout):
-                    raise TimeoutError("\nFailed to establish authenticated ssh " \
-                            "connection to {} after {} attempts during {} seconds.\n{}".format(
-                                floating_ip, attempts, timeout, e))
+                    raise TimeoutError(
+                        "\nFailed to establish authenticated ssh connection "
+                        "to {} after {} attempts during {} seconds.\n{}"
+                        "".format(floating_ip, attempts, timeout, e))
                 attempts += 1
                 time.sleep(bsleep)
 
@@ -170,10 +169,11 @@ class prepare_iperf(object):
             logger.debug("Using downloaded iperf package")
             path_to_iperf_deb = config.get('iperf_deb_package_path') or \
                     "/artifacts/mos-spt/iperf_2.0.5+dfsg1-2_amd64.deb"
-            transport.put_file(path_to_iperf_deb,
-                    "/home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb")
+            path_to_iperf_at_target_vm = \
+                "/home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb"
+            transport.put_file(path_to_iperf_deb, path_to_iperf_at_target_vm)
             transport.exec_command(
-                'sudo dpkg -i /home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb')
+                'sudo dpkg -i {}'.format(path_to_iperf_at_target_vm))
         else:
             logger.debug("Installing iperf using apt")
             preparation_cmd = config.get('iperf_prep_string') or ['']

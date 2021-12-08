@@ -38,17 +38,23 @@ def os_resources(openstack_clients):
     flavor_vcpus = config.get('flavor_vcpus', 1)
     flavor_disk = config.get('flavor_disk', 3)
 
-    os_images_list = [image.id for image in openstack_clients.image.images.list(filters={'name': image_name})]
+    os_images_list = [image.id for image in
+                      openstack_clients.image.images.list(
+                          filters={'name': image_name})]
 
     if os_images_list.__len__() == 0:
-        pytest.skip("No images with name {}. This name can be redefined with 'image_name' env var ".format(image_name))
+        pytest.skip("No images with name {}. This name can be redefined "
+                    "with 'image_name' env var ".format(image_name))
 
     os_resource['image_id'] = str(os_images_list[0])
 
-    os_resource['flavor_id'] = [flavor.id for flavor in openstack_clients.compute.flavors.list() if flavor.name == flavor_name]
+    os_resource['flavor_id'] = [flavor.id for flavor in
+                                openstack_clients.compute.flavors.list()
+                                if flavor.name == flavor_name]
     flavor_is_created = False
     if not os_resource['flavor_id']:
-        os_resource['flavor_id'] = os_actions.create_flavor(flavor_name, flavor_ram, flavor_vcpus, flavor_disk).id
+        os_resource['flavor_id'] = os_actions.create_flavor(
+            flavor_name, flavor_ram, flavor_vcpus, flavor_disk).id
         flavor_is_created = True
     else:
         os_resource['flavor_id'] = str(os_resource['flavor_id'][0])
@@ -60,28 +66,38 @@ def os_resources(openstack_clients):
     os_resource['net1'] = os_actions.create_network_resources()
     os_resource['ext_net'] = os_actions.get_external_network()
     adm_tenant = os_actions.get_admin_tenant()
-    os_resource['router'] = os_actions.create_router(os_resource['ext_net'], adm_tenant.id)
+    os_resource['router'] = os_actions.create_router(
+        os_resource['ext_net'], adm_tenant.id)
     os_resource['net2'] = os_actions.create_network(adm_tenant.id)
-    os_resource['subnet2'] = os_actions.create_subnet(os_resource['net2'], adm_tenant.id, '10.2.7.0/24')
+    os_resource['subnet2'] = os_actions.create_subnet(
+        os_resource['net2'], adm_tenant.id, '10.2.7.0/24')
     for subnet in openstack_clients.network.list_subnets()['subnets']:
         if subnet['network_id'] == os_resource['net1']['id']:
             os_resource['subnet1'] = subnet['id']
 
-    openstack_clients.network.add_interface_router(os_resource['router']['id'], {'subnet_id': os_resource['subnet1']})
-    openstack_clients.network.add_interface_router(os_resource['router']['id'], {'subnet_id': os_resource['subnet2']['id']})
+    openstack_clients.network.add_interface_router(
+        os_resource['router']['id'],{'subnet_id': os_resource['subnet1']})
+    openstack_clients.network.add_interface_router(
+        os_resource['router']['id'],
+        {'subnet_id': os_resource['subnet2']['id']})
     yield os_resource
-    # time.sleep(5)
-    openstack_clients.network.remove_interface_router(os_resource['router']['id'], {'subnet_id': os_resource['subnet1']})
-    openstack_clients.network.remove_interface_router(os_resource['router']['id'], {'subnet_id': os_resource['subnet2']['id']})
-    openstack_clients.network.remove_gateway_router(os_resource['router']['id'])
+
+    # cleanup created resources
+    openstack_clients.network.remove_interface_router(
+        os_resource['router']['id'], {'subnet_id': os_resource['subnet1']})
+    openstack_clients.network.remove_interface_router(
+        os_resource['router']['id'],
+        {'subnet_id': os_resource['subnet2']['id']})
+    openstack_clients.network.remove_gateway_router(
+        os_resource['router']['id'])
     time.sleep(5)
     openstack_clients.network.delete_router(os_resource['router']['id'])
     time.sleep(5)
-    # openstack_clients.network.delete_subnet(subnet1['id'])
     openstack_clients.network.delete_network(os_resource['net1']['id'])
     openstack_clients.network.delete_network(os_resource['net2']['id'])
 
-    openstack_clients.compute.security_groups.delete(os_resource['sec_group'].id)
+    openstack_clients.compute.security_groups.delete(
+        os_resource['sec_group'].id)
     openstack_clients.compute.keypairs.delete(os_resource['keypair'].name)
     if flavor_is_created:
         openstack_clients.compute.flavors.delete(os_resource['flavor_id'])

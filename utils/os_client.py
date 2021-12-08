@@ -239,11 +239,13 @@ class OSCliActions(object):
                                 "router:external": True,
                                 "provider:network_type": "local"}}
         try:
-            ext_net = self.os_clients.network.create_network(net_body)['network']
+            ext_net = \
+                self.os_clients.network.create_network(net_body)['network']
         except Exception as e:
             # in case 'local' net type is absent, create with default type
             net_body["network"].pop('provider:network_type', None)
-            ext_net = self.os_clients.network.create_network(net_body)['network']
+            ext_net = \
+                self.os_clients.network.create_network(net_body)['network']
         subnet_name = "spt-ext-subnet-{}".format(random.randrange(100, 999))
         subnet_body = {
             "subnet": {
@@ -422,28 +424,14 @@ class OSCliActions(object):
         }
         router = self.os_clients.network.create_router(router_body)['router']
         return router
-        # yield router
-        # self.os_clients.network.delete_router(router['id'])
 
     def create_network_resources(self):
         tenant_id = self.get_admin_tenant().id
         ext_net = self.get_external_network()
         net = self.create_network(tenant_id)
         subnet = self.create_subnet(net, tenant_id)
-        # router = self.create_router(ext_net, tenant_id)
-        # self.os_clients.network.add_interface_router(
-        #    router['id'], {'subnet_id': subnet['id']})
-
         private_net_id = net['id']
-        # floating_ip_pool = ext_net['id']
-
         return net
-        # yield private_net_id, floating_ip_pool
-        # yield private_net_id
-        #
-        # self.os_clients.network.remove_interface_router(
-        #     router['id'], {'subnet_id': subnet['id']})
-        # self.os_clients.network.remove_gateway_router(router['id'])
 
     def list_nova_computes(self):
         nova_services = self.os_clients.compute.hosts.list()
