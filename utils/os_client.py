@@ -73,14 +73,11 @@ class OfficialClientManager(object):
         if cert and "https" not in auth_url:
             auth_url = auth_url.replace("http", "https")
 
-        # TODO(izadorozhna): remove Keystone v2
-        if cls.KEYSTONECLIENT_VERSION == (2, 0):
-            # auth_url = "{}{}".format(auth_url, "v2.0/")
-            auth = keystone_identity.v2.Password(
-                username=username,
-                password=password,
-                auth_url=auth_url,
-                tenant_name=tenant_name)
+        if "v2" in auth_url:
+            raise BaseException("Keystone v2 is deprecated since OpenStack"
+                                "Queens release. So current OS_AUTH_URL {} "
+                                "is not valid. Please use Keystone v3."
+                                "".format(auth_url))
         else:
             auth_url = auth_url if ("v3" in auth_url) else "{}{}".format(
                 auth_url, "/v3")
@@ -318,29 +315,10 @@ class OSCliActions(object):
                 secgroup.id, **ruleset)
         return secgroup
 
-    def wait(predicate, interval=5, timeout=60,
-             timeout_msg="Waiting timed out"):
-        start_time = time.time()
-        if not timeout:
-            return predicate()
-        while not predicate():
-            if start_time + timeout < time.time():
-                raise exceptions.TimeoutError(timeout_msg)
-
-            seconds_to_sleep = max(
-                0,
-                min(interval, start_time + timeout - time.time()))
-            time.sleep(seconds_to_sleep)
-
-        return timeout + start_time - time.time()
-
     def create_basic_server(self, image=None, flavor=None, net=None,
                             availability_zone=None, sec_groups=(),
-                            keypair=None,
-                            wait_timeout=3 * 60):
+                            keypair=None):
         os_conn = self.os_clients
-        image = image or self.get_cirros_image()
-        flavor = flavor or self.get_micro_flavor()
         net = net or self.get_internal_network()
         kwargs = {}
         if sec_groups:
