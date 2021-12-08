@@ -69,7 +69,6 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
             private_address = vms[i].addresses[list(vms[i].addresses.keys())[0]][0]['addr']
             vm_info.append({'vm': vms[i], 'fip': fip.ip,
                             'private_address': private_address})
-
         # Check VMs are reachable and prepare iperf
         transport1 = ssh.SSHTransport(vm_info[0]['fip'], 'ubuntu',
                                       password='dd', private_key=private_key)
@@ -78,11 +77,6 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
                     floating_ip=vm_info[i]['fip'], timeout=ssh_timeout):
                 print("\nizadorozhna: VM - do prepare iperf")
                 ssh.prepare_iperf(vm_info[i]['fip'], private_key=private_key)
-            else:
-                pytest.fail(
-                    "VM {} with FIP {} is not reachable after {} seconds."
-                    "".format(vm_info[i], vm_info[i]['fip'], ssh_timeout))
-
         # Prepare the result table and run iperf
         table_rows = []
         table_rows.append(['Test Case', 'Host 1', 'Host 2', 'Result'])

@@ -145,25 +145,14 @@ class SSHTransport(object):
                 ssh.connect(floating_ip, username=self.username,
                             password=self.password, pkey=self.private_key,
                             timeout=self.channel_timeout)
-                print("\nizadorozhna: ssh connection to {} successfully "
-                      "created".format(floating_ip))
                 return True
-            # except (EOFError,
-            #         socket.error, socket.timeout,
-            #         paramiko.SSHException,
-            #         paramiko.ssh_exception.SSHException()):
             except Exception as e:
                 ssh.close()
                 if self._is_timed_out(_start_time, timeout):
-                    print("\nizadorozhna: Failed to establish authenticated "
-                          "ssh connection to {} after {} attempts!!!".format(
-                        floating_ip, attempts))
-                    return False
+                    raise TimeoutError("\nFailed to establish authenticated ssh " \
+                            "connection to {} after {} attempts during {} seconds.\n{}".format(
+                                floating_ip, attempts, timeout, e))
                 attempts += 1
-                print("\nizadorozhna: Failed to establish authenticated ssh"
-                            " connection to {}. Number attempts: {}..."
-                            " Retry after {} seconds.".format(
-                    floating_ip, attempts, bsleep))
                 time.sleep(bsleep)
 
 
