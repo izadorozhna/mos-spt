@@ -347,15 +347,38 @@ class OSCliActions(object):
             "spt-test-server-{}".format(random.randrange(100, 999)),
             image, flavor, nics=[{"net-id": net["id"]}],
             availability_zone=availability_zone, key_name=keypair, **kwargs)
-        # TODO
-        # if wait_timeout:
-        #    self.wait(
-        #        lambda: os_conn.compute.servers.get(server).status == "ACTIVE",
-        #        timeout=wait_timeout,
-        #        timeout_msg=(
-        #            "Create server {!r} failed by timeout. "
-        #            "Please, take a look at OpenStack logs".format(server.id)))
+
         return server
+
+    def get_vm(self, vm_id):
+        os_conn = self.os_clients
+        try:
+            vm = os_conn.compute.servers.find(id=vm_id)
+        except Exception as e:
+            raise Exception(
+                "{}. Could not get the VM \"{}\": {}".format(
+                    vm_id, e))
+        return vm
+
+    def check_vm_is_active(self, vm_uuid, retry_delay=5, timeout=500):
+        vm = None
+        timeout_reached = False
+        start_time = time.time()
+        expected_state = 'ACTIVE'
+        while not timeout_reached:
+            vm = self.get_vm(vm_uuid)
+            if vm.status == expected_state:
+                break
+            if vm.status == 'ERROR':
+                break
+            time.sleep(retry_delay)
+            timeout_reached = (time.time() - start_time) > timeout
+        if vm.status != expected_state:
+            raise TimeoutError(
+                "VM {vm_uuid} on is expected to be in '{expected_state}' "
+                "state, but is in '{actual}' state instead.".format(
+                    vm_uuid=vm_uuid, expected_state=expected_state,
+                    actual=vm.status))
 
     def create_network(self, tenant_id):
         net_name = "spt-test-net-{}".format(random.randrange(100, 999))

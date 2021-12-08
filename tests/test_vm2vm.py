@@ -14,7 +14,11 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
     os_actions = os_client.OSCliActions(openstack_clients)
     config = utils.get_configuration()
     timeout = int(config.get('nova_timeout', 30))
+    iperf_time = int(config.get('iperf_time', 60))
+    private_key = os_resources['keypair'].private_key
+    ssh_timeout = int(config.get('ssh_timeout', 500))
     result_table = Texttable()
+
     try:
         zone1 = [service.zone for service in
                  openstack_clients.compute.services.list() if
@@ -55,61 +59,63 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         vms.extend([vm1, vm2, vm3, vm4])
         fips = []
         time.sleep(5)
+
+        # Associate FIPs and check VMs are Active
         for i in range(4):
             fip = openstack_clients.compute.floating_ips.create(os_resources['ext_net']['name'])
             fips.append(fip.id)
-            status = openstack_clients.compute.servers.get(vms[i]).status
-            if status != 'ACTIVE':
-                print("VM #{0} {1} is not ready. Status {2}".format(i,vms[i].id,status))
-                time.sleep(timeout)
-                status = openstack_clients.compute.servers.get(vms[i]).status
-            if status != 'ACTIVE':
-                raise Exception('VM is not ready')
+            os_actions.check_vm_is_active(vms[i].id, timeout=timeout)
             vms[i].add_floating_ip(fip)
             private_address = vms[i].addresses[list(vms[i].addresses.keys())[0]][0]['addr']
-            # TODO (izadorozhna): Think about time to sleep below
-            time.sleep(30)
-            try:
-                ssh.prepare_iperf(fip.ip, private_key=os_resources['keypair'].private_key)
-            except Exception as e:
-                print(e)
-                print("ssh.prepare_iperf was not successful, retry after {} sec".format(timeout))
-                time.sleep(timeout)
-                ssh.prepare_iperf(fip.ip, private_key=os_resources['keypair'].private_key)
-            vm_info.append({'vm': vms[i], 'fip': fip.ip, 'private_address': private_address})
-        transport1 = ssh.SSHTransport(vm_info[0]['fip'], 'ubuntu', password='dd', private_key=os_resources['keypair'].private_key)
+            vm_info.append({'vm': vms[i], 'fip': fip.ip,
+                            'private_address': private_address})
+
+        # Check VMs are reachable and prepare iperf
+        transport1 = ssh.SSHTransport(vm_info[0]['fip'], 'ubuntu',
+                                      password='dd', private_key=private_key)
+        for i in range(4):
+            if transport1.check_vm_is_reachable_ssh(
+                    floating_ip=vm_info[i]['fip'], timeout=ssh_timeout):
+                print("\nizadorozhna: VM - do prepare iperf")
+                ssh.prepare_iperf(vm_info[i]['fip'], private_key=private_key)
+            else:
+                pytest.fail(
+                    "VM {} with FIP {} is not reachable after {} seconds."
+                    "".format(vm_info[i], vm_info[i]['fip'], ssh_timeout))
+
+        # Prepare the result table and run iperf
         table_rows = []
         table_rows.append(['Test Case', 'Host 1', 'Host 2', 'Result'])
 
-        result1 = transport1.exec_command('iperf -c {} -t 60 | tail -n 1'.format(vm_info[1]['private_address']))
+        result1 = transport1.exec_command('iperf -c {} -t {} | tail -n 1'.format(vm_info[1]['private_address'], iperf_time))
         res1 = b" ".join(result1.split()[-2::])
         table_rows.append(['VM to VM in same tenant on same node via Private IP, 1 thread',
                                 "{}".format(pair[0]),
                                 "{}".format(pair[0]),
                                 "{}".format(res1.decode('utf-8'))])
 
-        result2 = transport1.exec_command('iperf -c {} -t 60 | tail -n 1'.format(vm_info[2]['private_address']))
+        result2 = transport1.exec_command('iperf -c {} -t {} | tail -n 1'.format(vm_info[2]['private_address'], iperf_time))
         res2 = b" ".join(result2.split()[-2::])
         table_rows.append(['VM to VM in same tenant on different HW nodes via Private IP, 1 thread',
                                 "{}".format(pair[0]),
                                 "{}".format(pair[1]),
                                 "{}".format(res2.decode('utf-8'))])
 
-        result3 = transport1.exec_command('iperf -c {} -P 10 -t 60 | tail -n 1'.format(vm_info[2]['private_address']))
+        result3 = transport1.exec_command('iperf -c {} -P 10 -t {} | tail -n 1'.format(vm_info[2]['private_address'], iperf_time))
         res3 = b" ".join(result3.split()[-2::])
         table_rows.append(['VM to VM in same tenant on different HW nodes via Private IP, 10 threads',
                                 "{}".format(pair[0]),
                                 "{}".format(pair[1]),
                                 "{}".format(res3.decode('utf-8'))])
 
-        result4 = transport1.exec_command('iperf -c {} -t 60 | tail -n 1'.format(vm_info[2]['fip']))
+        result4 = transport1.exec_command('iperf -c {} -t {} | tail -n 1'.format(vm_info[2]['fip'], iperf_time))
         res4 = b" ".join(result4.split()[-2::])
         table_rows.append(['VM to VM in same tenant via Floating IP and VMs are on different nodes, 1 thread',
                                 "{}".format(pair[0]),
                                 "{}".format(pair[1]),
                                 "{}".format(res4.decode('utf-8'))])
 
-        result5 = transport1.exec_command('iperf -c {} -t 60 | tail -n 1'.format(vm_info[3]['private_address']))
+        result5 = transport1.exec_command('iperf -c {} -t {} | tail -n 1'.format(vm_info[3]['private_address'], iperf_time))
         res5 = b" ".join(result5.split()[-2::])
         table_rows.append(['VM to VM in same tenant, different HW nodes and each VM is connected to separate network which are connected using Router via Private IP, 1 thread',
                                 "{}".format(pair[0]),

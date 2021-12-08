@@ -3,6 +3,8 @@ import logging
 import select
 import utils
 import paramiko
+import time
+import socket
 
 
 logger = logging.getLogger(__name__)
@@ -129,10 +131,47 @@ class SSHTransport(object):
         sftp.get(source_path, destination_path)
         sftp.close()
 
+    def _is_timed_out(self, start_time, timeout):
+        return (time.time() - timeout) > start_time
+
+    def check_vm_is_reachable_ssh(self, floating_ip, timeout=500, sleep=5):
+        bsleep = sleep
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        _start_time = time.time()
+        attempts = 0
+        while True:
+            try:
+                ssh.connect(floating_ip, username=self.username,
+                            password=self.password, pkey=self.private_key,
+                            timeout=self.channel_timeout)
+                print("\nizadorozhna: ssh connection to {} successfully "
+                      "created".format(floating_ip))
+                return True
+            # except (EOFError,
+            #         socket.error, socket.timeout,
+            #         paramiko.SSHException,
+            #         paramiko.ssh_exception.SSHException()):
+            except Exception as e:
+                ssh.close()
+                if self._is_timed_out(_start_time, timeout):
+                    print("\nizadorozhna: Failed to establish authenticated "
+                          "ssh connection to {} after {} attempts!!!".format(
+                        floating_ip, attempts))
+                    return False
+                attempts += 1
+                print("\nizadorozhna: Failed to establish authenticated ssh"
+                            " connection to {}. Number attempts: {}..."
+                            " Retry after {} seconds.".format(
+                    floating_ip, attempts, bsleep))
+                time.sleep(bsleep)
+
 
 class prepare_iperf(object):
 
-    def __init__(self, fip, user='ubuntu', password='password', private_key=None):
+    def __init__(self, fip, user='ubuntu', password='password',
+                 private_key=None):
+
         transport = SSHTransport(fip, user, password, private_key)
         config = utils.get_configuration()
 
@@ -152,6 +191,7 @@ class prepare_iperf(object):
             transport.exec_command(preparation_cmd)
             transport.exec_command(
                 'sudo apt-get update; sudo apt-get install -y iperf')
+
         # Log whether iperf is installed with version
         check = transport.exec_command('dpkg -l | grep iperf')
         logger.debug(check)
