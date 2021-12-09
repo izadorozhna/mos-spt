@@ -2,8 +2,11 @@ import pytest
 import time
 import subprocess
 import random
+import logging
 
 import utils
+
+logger = logging.getLogger(__name__)
 
 
 def is_parsable(value, to):
@@ -27,9 +30,11 @@ def create_image():
                           'bs=1M count={} 2>/dev/null' \
                           ''.format(image_size_megabytes)
     is_cmd_successful = subprocess.call(create_file_cmdline, shell=True) == 0
+    logger.info("Created local image file /tmp/image_mk_framework.dd")
     yield is_cmd_successful
 
     # teardown
+    logger.info("Deleting /tmp/image_mk_framework.dd file")
     subprocess.call('rm -f /tmp/image_mk_framework.dd', shell=True)
     subprocess.call('rm -f /tmp/image_mk_framework.download', shell=True)
 
@@ -57,10 +62,14 @@ def test_speed_glance(create_image, openstack_clients, record_property):
             name=image_name,
             disk_format='iso',
             container_format='bare')
+        logger.info("Created an image {} in Glance.".format(image_name))
     except BaseException as e:
+        logger.info("Could not create image in Glance. See details: {}"
+                    "".format(e))
         pytest.fail("Can't create image in Glance. Occurred error: {}"
                     "".format(e))
 
+    logger.info("Testing upload file speed...")
     start_time = time.time()
     try:
         openstack_clients.image.images.upload(
@@ -72,8 +81,8 @@ def test_speed_glance(create_image, openstack_clients, record_property):
 
     speed_upload = image_size_megabytes / (end_time - start_time)
 
+    logger.info("Testing download file speed...")
     start_time = time.time()
-
     with open("/tmp/image_mk_framework.download", 'wb') as image_file:
         for item in openstack_clients.image.images.data(image.id):
             image_file.write(item)
@@ -88,3 +97,4 @@ def test_speed_glance(create_image, openstack_clients, record_property):
     print("++++++++++++++++++++++++++++++++++++++++")
     print('upload - {} MB/s'.format(speed_upload))
     print('download - {} MB/s'.format(speed_download))
+    print("++++++++++++++++++++++++++++++++++++++++")

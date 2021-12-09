@@ -1,7 +1,10 @@
 import os
 import yaml
+import logging
 
 from utils import os_client
+
+logger = logging.getLogger(__name__)
 
 
 def compile_pairs(nodes):
@@ -19,7 +22,9 @@ def get_pairs():
     cmp_hosts = config.get('CMP_HOSTS') or []
     skipped_nodes = config.get('skipped_nodes') or []
     if skipped_nodes:
-        print("Notice: {0} nodes will be skipped for vm2vm test").format(skipped_nodes)
+        print("\nNotice: {} nodes will be skipped for vm2vm test".format(
+            ",".join(skipped_nodes)))
+        logger.info("Skipping nodes {}".format(",".join(skipped_nodes)))
     if not cmp_hosts:
         openstack_clients = os_client.OfficialClientManager(
             username=os.environ['OS_USERNAME'],
@@ -36,9 +41,17 @@ def get_pairs():
         #     raise BaseException(
         #         "At least 2 compute hosts are needed for VM2VM test, "
         #         "now: {}.".format(len(nova_computes)))
-        cmp_hosts = [n.host_name for n in nova_computes]
-        #TODO(izadorozhna): remove the workaround for 1 compute
+        cmp_hosts = [n.host_name for n in nova_computes
+                     if n.host_name not in skipped_nodes]
+        # TODO(izadorozhna): remove the workaround for 1 compute
         cmp_hosts.append(nova_computes[0].host_name)
+        if len(cmp_hosts) < 2:
+            raise BaseException(
+                "At least 2 compute hosts are needed for VM2VM test. "
+                "Cannot create a pair from {}. Please check skip list, at "
+                "least 2 computes should be tested.".format(cmp_hosts))
+        logger.info("CMP_HOSTS option is not set, using host pair from "
+                    "Nova compute list. Pair generated: {}".format(cmp_hosts))
 
     return compile_pairs(cmp_hosts)
 

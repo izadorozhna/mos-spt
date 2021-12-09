@@ -143,10 +143,14 @@ class SSHTransport(object):
                 ssh.connect(floating_ip, username=self.username,
                             password=self.password, pkey=self.private_key,
                             timeout=self.channel_timeout)
+                logger.info("VM with FIP {} is reachable via SSH. Success!"
+                            "".format(floating_ip))
                 return True
             except Exception as e:
                 ssh.close()
                 if self._is_timed_out(_start_time, timeout):
+                    logger.info("VM with FIP {} is not reachable via SSH. "
+                                "See details: {}".format(floating_ip, e))
                     raise TimeoutError(
                         "\nFailed to establish authenticated ssh connection "
                         "to {} after {} attempts during {} seconds.\n{}"

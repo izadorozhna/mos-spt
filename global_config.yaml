@@ -16,3 +16,4 @@ internet_at_vms: 'true' # whether Internet is present at OpenStack VMs and iperf
 iperf_deb_package_path: '/artifacts/mos-spt/iperf_2.0.5+dfsg1-2_amd64.deb'
 iperf_time: 60 # time in seconds to transmit for (iperf -t option)
 ssh_timeout: 500
+skipped_nodes: []

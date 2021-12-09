@@ -6,10 +6,14 @@ from keystoneclient.v3 import client as keystone_client
 from neutronclient.v2_0 import client as neutron_client
 from novaclient import client as novaclient
 
+import logging
 import os
 import random
 import time
+
 import utils
+
+logger = logging.getLogger(__name__)
 
 
 class OfficialClientManager(object):
@@ -230,7 +234,8 @@ class OSCliActions(object):
         return net
 
     def create_fake_external_network(self):
-        print('\nCould not find any external network, creating a fake one...')
+        logger.info(
+            "Could not find any external network, creating a fake one...")
         net_name = "spt-ext-net-{}".format(random.randrange(100, 999))
         net_body = {"network": {"name": net_name,
                                 "router:external": True,
@@ -238,6 +243,7 @@ class OSCliActions(object):
         try:
             ext_net = \
                 self.os_clients.network.create_network(net_body)['network']
+            logger.info("Created a fake external net {}".format(net_name))
         except Exception as e:
             # in case 'local' net type is absent, create with default type
             net_body["network"].pop('provider:network_type', None)
@@ -274,11 +280,13 @@ class OSCliActions(object):
 
         if networks:
             ext_net = networks[0]
+            logger.info("Using external net '{}'.".format(ext_net["name"]))
         else:
             ext_net = self.create_fake_external_network()
         return ext_net
 
     def create_flavor(self, name, ram=256, vcpus=1, disk=2):
+        logger.info("Creating a flavor {}".format(name))
         return self.os_clients.compute.flavors.create(name, ram, vcpus, disk)
 
     def create_sec_group(self, rulesets=None):
@@ -313,6 +321,7 @@ class OSCliActions(object):
         for ruleset in rulesets:
             self.os_clients.compute.security_group_rules.create(
                 secgroup.id, **ruleset)
+        logger.info("Created a security group {}".format(sg_name))
         return secgroup
 
     def create_basic_server(self, image=None, flavor=None, net=None,
@@ -348,12 +357,15 @@ class OSCliActions(object):
         while not timeout_reached:
             vm = self.get_vm(vm_uuid)
             if vm.status == expected_state:
+                logger.info(
+                    "VM {} is in {} status.".format(vm_uuid, vm.status))
                 break
             if vm.status == 'ERROR':
                 break
             time.sleep(retry_delay)
             timeout_reached = (time.time() - start_time) > timeout
         if vm.status != expected_state:
+            logger.info("VM {} is in {} status.".format(vm_uuid, vm.status))
             raise TimeoutError(
                 "VM {vm_uuid} on is expected to be in '{expected_state}' "
                 "state, but is in '{actual}' state instead.".format(
@@ -369,9 +381,8 @@ class OSCliActions(object):
             }
         }
         net = self.os_clients.network.create_network(net_body)['network']
+        logger.info("Created internal network {}".format(net_name))
         return net
-        # yield net
-        # self.os_clients.network.delete_network(net['id'])
 
     def create_subnet(self, net, tenant_id, cidr=None):
         subnet_name = "spt-test-subnet-{}".format(random.randrange(100, 999))
@@ -385,9 +396,8 @@ class OSCliActions(object):
             }
         }
         subnet = self.os_clients.network.create_subnet(subnet_body)['subnet']
+        logger.info("Created subnet {}".format(subnet_name))
         return subnet
-        # yield subnet
-        # self.os_clients.network.delete_subnet(subnet['id'])
 
     def create_router(self, ext_net, tenant_id):
         name = 'spt-test-router-{}'.format(random.randrange(100, 999))
@@ -400,6 +410,7 @@ class OSCliActions(object):
                 'tenant_id': tenant_id
             }
         }
+        logger.info("Created a router {}".format(name))
         router = self.os_clients.network.create_router(router_body)['router']
         return router
 
