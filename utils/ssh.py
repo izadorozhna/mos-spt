@@ -156,6 +156,9 @@ class SSHTransport(object):
                         "to {} after {} attempts during {} seconds.\n{}"
                         "".format(floating_ip, attempts, timeout, e))
                 attempts += 1
+                logger.info("Failed to establish authenticated ssh connection "
+                            "to {}. Number attempts: {}. Retry after {} "
+                            "seconds.".format(floating_ip, attempts, bsleep))
                 time.sleep(bsleep)
 
 
@@ -170,7 +173,7 @@ class prepare_iperf(object):
         # Install iperf using apt or downloaded deb package
         internet_at_vms = utils.get_configuration().get("internet_at_vms")
         if internet_at_vms.lower() == 'false':
-            logger.debug("Using downloaded iperf package")
+            logger.info("Copying offline iperf deb package, installing...")
             path_to_iperf_deb = config.get('iperf_deb_package_path') or \
                     "/artifacts/mos-spt/iperf_2.0.5+dfsg1-2_amd64.deb"
             path_to_iperf_at_target_vm = \
@@ -179,7 +182,7 @@ class prepare_iperf(object):
             transport.exec_command(
                 'sudo dpkg -i {}'.format(path_to_iperf_at_target_vm))
         else:
-            logger.debug("Installing iperf using apt")
+            logger.info("Installing iperf using apt")
             preparation_cmd = config.get('iperf_prep_string') or ['']
             transport.exec_command(preparation_cmd)
             transport.exec_command(

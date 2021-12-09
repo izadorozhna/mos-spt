@@ -89,7 +89,7 @@ def test_speed_glance(create_image, openstack_clients, record_property):
     end_time = time.time()
 
     speed_download = image_size_megabytes / (end_time - start_time)
-
+    logger.info("Deleted image {}.".format(image.id))
     openstack_clients.image.images.delete(image.id)
     record_property("Upload", speed_upload)
     record_property("Download", speed_download)

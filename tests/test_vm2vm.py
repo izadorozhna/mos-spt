@@ -80,7 +80,6 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         for i in range(4):
             if transport1.check_vm_is_reachable_ssh(
                     floating_ip=vm_info[i]['fip'], timeout=ssh_timeout):
-                print("\nizadorozhna: VM - do prepare iperf")
                 ssh.prepare_iperf(vm_info[i]['fip'], private_key=private_key)
 
         # Prepare the result table and run iperf
@@ -160,7 +159,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         print(result_table.draw())
 
         print("Removing VMs and FIPs...")
-        logger.info("Removing VMs...")
+        logger.info("Removing VMs and FIPs...")
         for vm in vms:
             openstack_clients.compute.servers.delete(vm)
         print("Removing FIPs...")
@@ -174,6 +173,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
             for vm in vms:
                 openstack_clients.compute.servers.delete(vm)
             if 'fips' in locals():
+                logger.info("Removing FIPs...")
                 for fip in fips:
                     openstack_clients.compute.floating_ips.delete(fip)
         else:
