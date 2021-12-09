@@ -186,11 +186,11 @@ class prepare_iperf(object):
             preparation_cmd = config.get('iperf_prep_string') or ['']
             transport.exec_command(preparation_cmd)
             transport.exec_command(
-                'sudo apt-get update; sudo apt-get install -y iperf')
+                'sudo apt-get update; sudo apt-get install -y iperf3')
 
         # Log whether iperf is installed with version
         check = transport.exec_command('dpkg -l | grep iperf')
         logger.debug(check)
 
         # Staring iperf server
-        transport.exec_command('nohup iperf -s > file 2>&1 &')
+        transport.exec_command('nohup iperf3 -s > file 2>&1 &')

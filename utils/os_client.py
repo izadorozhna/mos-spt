@@ -307,6 +307,13 @@ class OSCliActions(object):
                     'cidr': '0.0.0.0/0',
                 },
                 {
+                    # iperf3
+                    'ip_protocol': 'tcp',
+                    'from_port': 5201,
+                    'to_port': 5201,
+                    'cidr': '0.0.0.0/0',
+                },
+                {
                     # ping
                     'ip_protocol': 'icmp',
                     'from_port': -1,
