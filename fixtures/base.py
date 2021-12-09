@@ -3,8 +3,12 @@ import pytest
 import utils
 import random
 import time
+import logging
 
 from utils import os_client
+
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='session')
@@ -83,6 +87,7 @@ def os_resources(openstack_clients):
     yield os_resource
 
     # cleanup created resources
+    logger.info("Deleting routers, networks, SG, key pair, flavor...")
     openstack_clients.network.remove_interface_router(
         os_resource['router']['id'], {'subnet_id': os_resource['subnet1']})
     openstack_clients.network.remove_interface_router(

@@ -416,10 +416,9 @@ class OSCliActions(object):
 
     def create_network_resources(self):
         tenant_id = self.get_admin_tenant().id
-        ext_net = self.get_external_network()
+        self.get_external_network()
         net = self.create_network(tenant_id)
-        subnet = self.create_subnet(net, tenant_id)
-        private_net_id = net['id']
+        self.create_subnet(net, tenant_id)
         return net
 
     def list_nova_computes(self):
