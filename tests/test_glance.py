@@ -25,7 +25,7 @@ def is_parsable(value, to):
 
 @pytest.fixture
 def create_image():
-    image_size_megabytes = utils.get_configuration().get("IMAGE_SIZE_MB")
+    image_size_megabytes = utils.get_configuration().get("IMAGE_SIZE_MB", 2000)
     create_file_cmdline = 'dd if=/dev/zero of=/tmp/image_mk_framework.dd ' \
                           'bs=1M count={} 2>/dev/null' \
                           ''.format(image_size_megabytes)
