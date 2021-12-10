@@ -73,7 +73,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
                 list(vms[i].addresses.keys())[0]][0]['addr']
             vm_info.append({'vm': vms[i], 'fip': fip.ip,
                             'private_address': private_address})
-        # Check VMs are reachable and prepare iperf
+        # Check VMs are reachable and prepare iperf3
         transport1 = ssh.SSHTransport(vm_info[0]['fip'], 'ubuntu',
                                       password='dd', private_key=private_key)
         logger.info("Checking VMs are reachable via SSH...")
@@ -82,10 +82,10 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
                     floating_ip=vm_info[i]['fip'], timeout=ssh_timeout):
                 ssh.prepare_iperf(vm_info[i]['fip'], private_key=private_key)
 
-        # Prepare the result table and run iperf
+        # Prepare the result table and run iperf3
         table_rows = []
         table_rows.append(['Test Case', 'Host 1', 'Host 2', 'Result'])
-        # Do iperf measurement #1
+        # Do iperf3 measurement #1
         logger.info("Doing VM to VM in same tenant on same node via Private "
                     "IP, 1 thread measurement...")
         result1 = transport1.exec_command(

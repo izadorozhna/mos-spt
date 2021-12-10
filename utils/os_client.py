@@ -300,13 +300,6 @@ class OSCliActions(object):
                     'cidr': '0.0.0.0/0',
                 },
                 {
-                    # iperf
-                    'ip_protocol': 'tcp',
-                    'from_port': 5001,
-                    'to_port': 5001,
-                    'cidr': '0.0.0.0/0',
-                },
-                {
                     # iperf3
                     'ip_protocol': 'tcp',
                     'from_port': 5201,

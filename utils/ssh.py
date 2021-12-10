@@ -180,10 +180,10 @@ class prepare_iperf(object):
         transport = SSHTransport(fip, user, password, private_key)
         config = utils.get_configuration()
 
-        # Install iperf using apt or downloaded deb package
+        # Install iperf3 using apt or downloaded deb package
         internet_at_vms = utils.get_configuration().get("internet_at_vms")
         if internet_at_vms.lower() == 'false':
-            logger.info("Copying offline iperf deb package, installing...")
+            logger.info("Copying offline iperf3 deb packages, installing...")
             path_to_iperf_deb = (config.get('iperf_deb_package_dir_path') or
                                  "/artifacts/mos-spt/")
             home_ubuntu = "/home/ubuntu/"
@@ -191,14 +191,14 @@ class prepare_iperf(object):
                                                      home_ubuntu)
             transport.exec_command('sudo dpkg -i {}*.deb'.format(home_ubuntu))
         else:
-            logger.info("Installing iperf using apt")
+            logger.info("Installing iperf3 using apt")
             preparation_cmd = config.get('iperf_prep_string') or ['']
             transport.exec_command(preparation_cmd)
             transport.exec_command('sudo apt-get update;'
                                    'sudo apt-get install -y iperf3')
 
         # Log whether iperf is installed with version
-        check = transport.exec_command('dpkg -l | grep iperf')
+        check = transport.exec_command('dpkg -l | grep iperf3')
         logger.debug(check.decode('utf-8'))
 
         # Staring iperf server
