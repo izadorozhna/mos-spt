@@ -13,6 +13,19 @@ logger = logging.getLogger(__name__)
 
 
 def test_vm2vm(openstack_clients, pair, os_resources, record_property):
+    """
+    Simplified Performance Tests VM to VM test in different topologies
+    1. Create 4 VMs admin project
+    2. Associate floating IPs to the VMs
+    3. Connect to each VM via SSH and install iperf3
+    4. Measure VM to VM on same node via Private IP, 1 thread
+    5. Measure VM to VM on different HW nodes via Private IP, 1 thread
+    6. Measure VM to VM on different HW nodes via Private IP, 10 threads
+    7. Measure VM to VM on different HW nodes via Floating IP, 1 thread
+    8. Measure VM to VM on different HW nodes, each VM is in separate network,
+       the networks are connected using Router via Private IP, 1 thread
+    9. Draw the table with all pairs and results
+    """
     os_actions = os_client.OSCliActions(openstack_clients)
     config = utils.get_configuration()
     timeout = int(config.get('nova_timeout', 30))
