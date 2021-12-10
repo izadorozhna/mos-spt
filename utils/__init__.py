@@ -11,7 +11,7 @@ def compile_pairs(nodes):
     result = {}
     if len(nodes) %2 != 0:
         nodes.pop(1)
-    pairs = zip(*[iter(nodes)]*2)
+    pairs = list(zip(*[iter(nodes)] * 2))
     for pair in pairs:
         result[pair[0]+'<>'+pair[1]] = pair
     return result
@@ -22,8 +22,8 @@ def get_pairs():
     cmp_hosts = config.get('CMP_HOSTS') or []
     skipped_nodes = config.get('skipped_nodes') or []
     if skipped_nodes:
-        print("\nNotice: {} nodes will be skipped for vm2vm test".format(
-            ",".join(skipped_nodes)))
+        print(("\nNotice: {} nodes will be skipped for vm2vm test".format(
+            ",".join(skipped_nodes))))
         logger.info("Skipping nodes {}".format(",".join(skipped_nodes)))
     if not cmp_hosts:
         openstack_clients = os_client.OfficialClientManager(
@@ -64,8 +64,8 @@ def get_configuration():
         os.path.dirname(os.path.abspath(__file__)), "../global_config.yaml")
     with open(global_config_file, 'r') as file:
         global_config = yaml.load(file, Loader=yaml.SafeLoader)
-    for param in global_config.keys():
-        if param in os.environ.keys():
+    for param in list(global_config.keys()):
+        if param in list(os.environ.keys()):
             if ',' in os.environ[param]:
                 global_config[param] = []
                 for item in os.environ[param].split(','):

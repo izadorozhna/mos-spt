@@ -155,7 +155,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
 
         logger.info("Drawing the table with iperf results...")
         result_table.add_rows(table_rows)
-        print(result_table.draw())
+        print((result_table.draw()))
 
         print("Removing VMs and FIPs...")
         logger.info("Removing VMs and FIPs...")

@@ -27,7 +27,7 @@ class OfficialClientManager(object):
     NEUTRONCLIENT_VERSION = 2
     NOVACLIENT_VERSION = 2
     INTERFACE = 'admin'
-    if "OS_ENDPOINT_TYPE" in os.environ.keys():
+    if "OS_ENDPOINT_TYPE" in list(os.environ.keys()):
         INTERFACE = os.environ["OS_ENDPOINT_TYPE"]
 
     def __init__(self, username=None, password=None,
@@ -64,7 +64,7 @@ class OfficialClientManager(object):
                           tenant_name=None, auth_url=None, cert=None,
                           domain='Default'):
         if None in (username, password, tenant_name):
-            print(username, password, tenant_name)
+            print((username, password, tenant_name))
             msg = ("Missing required credentials for identity client. "
                    "username: {username}, password: {password}, "
                    "tenant_name: {tenant_name}").format(

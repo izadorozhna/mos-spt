@@ -26,7 +26,8 @@ def openstack_clients():
 nodes = utils.get_pairs()
 
 
-@pytest.fixture(scope='session', params=nodes.values(), ids=nodes.keys())
+@pytest.fixture(scope='session', params=list(nodes.values()),
+                ids=list(nodes.keys()))
 def pair(request):
     return request.param
 

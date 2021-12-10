@@ -95,6 +95,6 @@ def test_speed_glance(create_image, openstack_clients, record_property):
     record_property("Download", speed_download)
 
     print("++++++++++++++++++++++++++++++++++++++++")
-    print('upload - {} MB/s'.format(speed_upload))
-    print('download - {} MB/s'.format(speed_download))
+    print(('upload - {} MB/s'.format(speed_upload)))
+    print(('download - {} MB/s'.format(speed_download)))
     print("++++++++++++++++++++++++++++++++++++++++")
