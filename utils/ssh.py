@@ -184,11 +184,11 @@ class prepare_iperf(object):
         internet_at_vms = utils.get_configuration().get("internet_at_vms")
         if internet_at_vms.lower() == 'false':
             logger.info("Copying offline iperf deb package, installing...")
-            path_to_iperf_deb = config.get('iperf_deb_package_dir_path') or \
-                                "/artifacts/mos-spt/"
+            path_to_iperf_deb = (config.get('iperf_deb_package_dir_path') or
+                                 "/artifacts/mos-spt/")
             home_ubuntu = "/home/ubuntu/"
-            transport.put_iperf3_deb_packages_at_vms(
-                path_to_iperf_deb, home_ubuntu)
+            transport.put_iperf3_deb_packages_at_vms(path_to_iperf_deb,
+                                                     home_ubuntu)
             transport.exec_command('sudo dpkg -i {}*.deb'.format(home_ubuntu))
         else:
             logger.info("Installing iperf using apt")
