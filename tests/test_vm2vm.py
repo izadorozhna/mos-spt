@@ -85,7 +85,6 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         # Prepare the result table and run iperf
         table_rows = []
         table_rows.append(['Test Case', 'Host 1', 'Host 2', 'Result'])
-
         # Do iperf measurement #1
         logger.info("Doing VM to VM in same tenant on same node via Private "
                     "IP, 1 thread measurement...")
@@ -105,7 +104,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         result2 = transport1.exec_command(
             'iperf3 -c {} -t {} | grep sender | tail -n 1'.format(
                 vm_info[2]['private_address'], iperf_time))
-        res2 = b" ".join(result1.split()[-4:-2:])
+        res2 = b" ".join(result2.split()[-4:-2:])
         table_rows.append(['VM to VM in same tenant on different HW nodes '
                            'via Private IP, 1 thread',
                            "{}".format(pair[0]),
@@ -118,7 +117,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         result3 = transport1.exec_command(
             'iperf3 -c {} -P 10 -t {} | grep sender | tail -n 1'.format(
                 vm_info[2]['private_address'], iperf_time))
-        res3 = b" ".join(result1.split()[-4:-2:])
+        res3 = b" ".join(result3.split()[-4:-2:])
         table_rows.append(['VM to VM in same tenant on different HW nodes '
                            'via Private IP, 10 threads',
                            "{}".format(pair[0]),
@@ -131,7 +130,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         result4 = transport1.exec_command(
             'iperf3 -c {} -t {} | grep sender | tail -n 1'.format(
                 vm_info[2]['fip'], iperf_time))
-        res4 = b" ".join(result1.split()[-4:-2:])
+        res4 = b" ".join(result4.split()[-4:-2:])
         table_rows.append(['VM to VM in same tenant via Floating IP and VMs '
                            'are on different nodes, 1 thread',
                            "{}".format(pair[0]),
@@ -146,7 +145,7 @@ def test_vm2vm(openstack_clients, pair, os_resources, record_property):
         result5 = transport1.exec_command(
             'iperf3 -c {} -t {} | grep sender | tail -n 1'.format(
                 vm_info[3]['private_address'], iperf_time))
-        res5 = b" ".join(result1.split()[-4:-2:])
+        res5 = b" ".join(result5.split()[-4:-2:])
         table_rows.append(['VM to VM in same tenant, different HW nodes and '
                            'each VM is connected to separate network which are'
                            ' connected using Router via Private IP, 1 thread',

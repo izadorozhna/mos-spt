@@ -4,6 +4,7 @@ import select
 import utils
 import paramiko
 import time
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,15 @@ class SSHTransport(object):
         sftp.put(source_path, destination_path)
         sftp.close()
 
+    def put_iperf3_deb_packages_at_vms(self, source_directory,
+                                       destination_directory):
+        iperf_deb_files = [f for f in os.listdir(source_directory)
+                           if "deb" in f]
+        for f in iperf_deb_files:
+            source_abs_path = "{}/{}".format(source_directory, f)
+            dest_abs_path = "{}/{}".format(destination_directory, f)
+            self.put_file(source_abs_path, dest_abs_path)
+
     def get_file(self, source_path, destination_path):
         sftp = self._get_sftp_connection()
         sftp.get(source_path, destination_path)
@@ -174,23 +184,23 @@ class prepare_iperf(object):
         internet_at_vms = utils.get_configuration().get("internet_at_vms")
         if internet_at_vms.lower() == 'false':
             logger.info("Copying offline iperf deb package, installing...")
-            path_to_iperf_deb = config.get('iperf_deb_package_path') or \
-                    "/artifacts/mos-spt/iperf_2.0.5+dfsg1-2_amd64.deb"
-            path_to_iperf_at_target_vm = \
-                "/home/ubuntu/iperf_2.0.5+dfsg1-2_amd64.deb"
-            transport.put_file(path_to_iperf_deb, path_to_iperf_at_target_vm)
-            transport.exec_command(
-                'sudo dpkg -i {}'.format(path_to_iperf_at_target_vm))
+            path_to_iperf_deb = config.get('iperf_deb_package_dir_path') or \
+                                "/artifacts/mos-spt/"
+            home_ubuntu = "/home/ubuntu/"
+            transport.put_iperf3_deb_packages_at_vms(
+                path_to_iperf_deb, home_ubuntu)
+            transport.exec_command('sudo dpkg -i {}*.deb'.format(home_ubuntu))
         else:
             logger.info("Installing iperf using apt")
             preparation_cmd = config.get('iperf_prep_string') or ['']
             transport.exec_command(preparation_cmd)
-            transport.exec_command(
-                'sudo apt-get update; sudo apt-get install -y iperf3')
+            transport.exec_command('sudo apt-get update;'
+                                   'sudo apt-get install -y iperf3')
 
         # Log whether iperf is installed with version
         check = transport.exec_command('dpkg -l | grep iperf')
         logger.debug(check)
 
         # Staring iperf server
-        transport.exec_command('nohup iperf3 -s > file 2>&1 &')
+        start = transport.exec_command('nohup iperf3 -s > file 2>&1 &')
+        logger.debug(start)

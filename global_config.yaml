@@ -13,8 +13,7 @@ nova_timeout: 300
 external_network: 'public'
 iperf_prep_string: "sudo /bin/bash -c 'echo \"91.189.88.161        archive.ubuntu.com\" >> /etc/hosts'"
 internet_at_vms: 'true' # whether Internet is present at OpenStack VMs and iperf can be installed with apt
-# TODO (izadorozhna): set iperf3 package
-iperf_deb_package_path: '/artifacts/mos-spt/iperf_2.0.5+dfsg1-2_amd64.deb'
+iperf_deb_package_dir_path: '/artifacts/mos-spt/'
 iperf_time: 60 # time in seconds to transmit for (iperf -t option)
 ssh_timeout: 500
 skipped_nodes: []
