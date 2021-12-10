@@ -199,8 +199,7 @@ class prepare_iperf(object):
 
         # Log whether iperf is installed with version
         check = transport.exec_command('dpkg -l | grep iperf')
-        logger.debug(check)
+        logger.debug(check.decode('utf-8'))
 
         # Staring iperf server
-        start = transport.exec_command('nohup iperf3 -s > file 2>&1 &')
-        logger.debug(start)
+        transport.exec_command('nohup iperf3 -s > file 2>&1 &')
