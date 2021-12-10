@@ -27,8 +27,7 @@ class SSHTransport(object):
 
         self.look_for_keys = look_for_keys
         self.buf_size = 1024
-        # TODO (izadorozhna) change timeout back to 10.0
-        self.channel_timeout = 600.0
+        self.channel_timeout = 10.0
 
     def _get_ssh_connection(self):
         ssh = paramiko.SSHClient()
