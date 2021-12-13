@@ -23,13 +23,13 @@ Settings
  The following options can be set in _global_config.yaml_ file, or by exporting
  the environment variables.
 
-**test_glance** allows next overrides:
+* **test_glance** allows next overrides:
 
 | Environment Variable | Default | Description |
 | --- | --- | --- |
 | IMAGE_SIZE_MB | 2000 | Specific image size (in MB) to upload/download at Glance |
 
-**test_vm2vm** allows next overrides:
+* **test_vm2vm** allows next overrides:
 
 | Environment Variable | Default | Description |
 | --- | --- | --- |
