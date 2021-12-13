@@ -216,6 +216,7 @@ class OfficialClientManager(object):
 class OSCliActions(object):
     def __init__(self, os_clients):
         self.os_clients = os_clients
+        self.create_fake_ext_net = False
 
     def get_admin_tenant(self):
         # TODO Keystone v3 doesnt have tenants attribute
@@ -261,6 +262,7 @@ class OSCliActions(object):
             }
         }
         self.os_clients.network.create_subnet(subnet_body)
+        self.create_fake_ext_net = True
         return ext_net
 
     def get_external_network(self):
