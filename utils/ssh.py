@@ -128,6 +128,12 @@ class SSHTransport(object):
                                        destination_directory):
         iperf_deb_files = [f for f in os.listdir(source_directory)
                            if "deb" in f]
+        if not iperf_deb_files:
+            raise BaseException(
+                "iperf3 *.deb packages are not found locally at path {}. "
+                "Please recheck 'iperf_deb_package_dir_path' variable in "
+                "global_config.yaml and check *.deb packages are manually "
+                "copied there.".format(source_directory))
         for f in iperf_deb_files:
             source_abs_path = "{}/{}".format(source_directory, f)
             dest_abs_path = "{}/{}".format(destination_directory, f)
