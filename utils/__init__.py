@@ -36,15 +36,12 @@ def get_pairs():
         )
         os_actions = os_client.OSCliActions(openstack_clients)
         nova_computes = os_actions.list_nova_computes()
-        # TODO(izadorozhna): remove the workaround for 1 compute
-        # if len(nova_computes) < 2:
-        #     raise BaseException(
-        #         "At least 2 compute hosts are needed for VM2VM test, "
-        #         "now: {}.".format(len(nova_computes)))
+        if len(nova_computes) < 2:
+            raise BaseException(
+                "At least 2 compute hosts are needed for VM2VM test, "
+                "now: {}.".format(len(nova_computes)))
         cmp_hosts = [n.host_name for n in nova_computes
                      if n.host_name not in skipped_nodes]
-        # TODO(izadorozhna): remove the workaround for 1 compute
-        cmp_hosts.append(nova_computes[0].host_name)
         if len(cmp_hosts) < 2:
             raise BaseException(
                 "At least 2 compute hosts are needed for VM2VM test. "
